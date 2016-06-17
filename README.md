@@ -224,6 +224,23 @@ EnvSetting.number_set
 #=> #<Set: {1, 3, 5, 7, 9}>
 ```
 
+## What if I don't like `EnvSetting` for my settings class name?
+
+We don't blame you, the easiest way to "rename" the settings class from
+`EnvSetting` is to define a new class that inherits from `EnvSetting` like so:
+
+```ruby
+class Settings < EnvSetting
+end
+
+Settings.config do
+...
+end
+
+# elsewhere in your app
+Settings.my_special_env_var
+```
+
 ## Implementation Notes
 
 1. Any method that can be run within an `EnvSetting.config` block can also be run
