@@ -26,7 +26,10 @@ RSpec.describe EnvSetting do
     end
 
     expect(described_class).to respond_to(:custom_var)
+    expect(described_class.custom_var).to eq 'foo'
+
     expect(described_class).to respond_to(:custom_var?)
+    expect(described_class.custom_var?).to eq true
   end
 
   it "Uses provided default value if ENV var not already present" do
@@ -232,6 +235,36 @@ RSpec.describe EnvSetting do
           use 'NOT_PRESENT', 'You need a NOT_PRESENT var in your ENV'
         end
       }.to raise_error(KeyError, /You need a NOT_PRESENT var in your ENV/)
+    end
+  end
+
+  describe ".instance" do
+    it "returns the instance singleton of #{described_class}" do
+      expect(described_class.instance).to be_a(described_class)
+    end
+
+    it "should have a local instance cache of the ENV variables' method names and their return values" do
+      ENV['VAR1'] = 'something'
+      described_class.use 'VAR1'
+
+      described_class.var1
+      described_class.var1?
+
+      expect(described_class.instance.cache).to have_key("var1")
+      expect(described_class.instance.cache).to have_key("var1?")
+    end
+
+    it "allows the cache to be cleared" do
+      ENV['VAR1'] = 'something'
+      described_class.use 'VAR1'
+
+      described_class.var1
+      described_class.var1?
+
+      expect(described_class.instance.cache.keys). to include "var1", "var1?"
+
+      described_class.instance.clear_cache!
+      expect(described_class.instance.cache).to be_empty
     end
   end
 end
