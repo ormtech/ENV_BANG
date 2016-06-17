@@ -89,18 +89,6 @@ class EnvSetting
     self.get_value(var)
   end
 
-  def vars
-    self.class.vars
-  end
-
-  def keys
-    self.class.keys
-  end
-
-  def values
-    self.class.values
-  end
-
   def cache
     @cache ||= {}
   end
