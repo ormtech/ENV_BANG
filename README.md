@@ -6,11 +6,8 @@ Environment](http://naildrivin5.com/blog/2016/06/10/dont-use-ENV-directly.html),
 `env_setting` is a slight rewrite of `env_bang` to provide OOP style access to
 your ENV.
 
-<!-- [![Gem Version](https://img.shields.io/gem/v/env_bang.svg?style=flat)](https://rubygems.org/gems/env_bang) -->
-<!-- [![Build Status](https://img.shields.io/travis/jcamenisch/ENV_BANG/master.svg?style=flat)](https://travis-ci.org/jcamenisch/ENV_BANG) -->
-<!-- [![Dependency Status](https://img.shields.io/gemnasium/jcamenisch/ENV_BANG.svg?style=flat)](https://gemnasium.com/jcamenisch/ENV_BANG) -->
-<!-- [![Code Climate](https://img.shields.io/codeclimate/github/jcamenisch/ENV_BANG.svg?style=flat)](https://codeclimate.com/github/jcamenisch/ENV_BANG) -->
-<!-- [![Coverage Status](https://img.shields.io/coveralls/jcamenisch/ENV_BANG/master.svg?style=flat)](https://coveralls.io/r/jcamenisch/ENV_BANG) -->
+[![Build Status](https://travis-ci.org/ormtech/env_setting.svg?branch=master)](https://travis-ci.org/ormtech/env_setting)
+[![Coverage Status](https://coveralls.io/repos/github/ormtech/env_setting/badge.svg?branch=master)](https://coveralls.io/github/ormtech/env_setting?branch=master)
 
 `env_setting` is very similar to `ENV!`, it sets out to accomplish the same
 purpose:
