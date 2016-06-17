@@ -35,7 +35,7 @@ RSpec.describe EnvSetting do
     described_class.config do
       use 'WASNT_PRESENT', default: 'a default value'
     end
-    expect(EnvSetting.wasnt_present).to eq 'a default value'
+    expect(described_class.wasnt_present).to eq 'a default value'
   end
 
   it "Returns actual value from ENV if present" do
@@ -44,7 +44,7 @@ RSpec.describe EnvSetting do
     described_class.config do
       use 'PRESENT', default: "You won't need this."
     end
-    expect(EnvSetting.present).to eq 'present in environment'
+    expect(described_class.present).to eq 'present in environment'
   end
 
   describe "Type casting" do
@@ -56,139 +56,141 @@ RSpec.describe EnvSetting do
     it "Casts Integers" do
       integer = integers.sample
       ENV['INTEGER'] = integer
-      EnvSetting.use 'INTEGER', class: Integer
+      described_class.use 'INTEGER', class: Integer
 
-      expect(EnvSetting.integer).to eq integer.to_i
+      expect(described_class.integer).to eq integer.to_i
     end
 
     it "Casts Symbols" do
       ENV['SYMBOL'] = 'symbol'
-      EnvSetting.use 'SYMBOL', class: Symbol
+      described_class.use 'SYMBOL', class: Symbol
 
-      expect(EnvSetting.symbol).to eq :symbol
+      expect(described_class.symbol).to eq :symbol
     end
 
     it "Casts Floats" do
       float = floats.sample
       ENV['FLOAT'] = float
-      EnvSetting.use 'FLOAT', class: Float
+      described_class.use 'FLOAT', class: Float
 
-      expect(EnvSetting.float).to eq float.to_f
-      expect(EnvSetting.float).to be_a Float
+      expect(described_class.float).to eq float.to_f
+      expect(described_class.float).to be_a Float
     end
 
     it "Casts Arrays" do
       ENV['ARRAY'] = 'one,two , three, four'
-      EnvSetting.use 'ARRAY', class: Array
+      described_class.use 'ARRAY', class: Array
 
-      expect(EnvSetting.array).to match_array(%w[one two three four])
+      expect(described_class.array).to match_array(%w[one two three four])
     end
 
     it "Casts Arrays of Integers" do
       ENV['INTEGERS'] = integers.join(',')
-      EnvSetting.use 'INTEGERS', class: Array, of: Integer
+      described_class.use 'INTEGERS', class: Array, of: Integer
 
-      expect(EnvSetting.integers).to match_array(integers.map(&:to_i))
+      expect(described_class.integers).to match_array(integers.map(&:to_i))
     end
 
     it "Casts Arrays of Floats" do
       ENV['FLOATS'] = floats.join(',')
-      EnvSetting.use 'FLOATS', class: Array, of: Float
+      described_class.use 'FLOATS', class: Array, of: Float
 
-      expect(EnvSetting.floats).to match_array(floats.map(&:to_f))
+      expect(described_class.floats).to match_array(floats.map(&:to_f))
     end
 
     it "regression: Casting Array always returns Array" do
       ENV['ARRAY'] = 'one,two , three, four'
-      EnvSetting.use 'ARRAY', class: Array
+      described_class.use 'ARRAY', class: Array
 
       2.times do
-        expect(EnvSetting.array).to match_array(%w[one two three four])
+        expect(described_class.array).to match_array(%w[one two three four])
       end
     end
 
     it "Casts Hashes" do
       ENV['HASH_VAR'] = 'one: two, three: four'
-      EnvSetting.use 'HASH_VAR', class: Hash
+      described_class.use 'HASH_VAR', class: Hash
 
-      expect(EnvSetting.hash_var).to eq({one: 'two', three: 'four'})
+      expect(described_class.hash_var).to eq({one: 'two', three: 'four'})
     end
 
     it 'Casts Hashes of Integers' do
       ENV['INT_HASH'] = 'one: 111, two: 222'
-      EnvSetting.use 'INT_HASH', class: Hash, of: Integer
+      described_class.use 'INT_HASH', class: Hash, of: Integer
 
-      expect(EnvSetting.int_hash).to eq({one: 111, two: 222})
+      expect(described_class.int_hash).to eq({one: 111, two: 222})
     end
 
     it 'Casts Hashes with String keys' do
       ENV['STRKEY_HASH'] = 'one: two, three: four'
-      EnvSetting.use 'STRKEY_HASH', class: Hash, keys: String
+      described_class.use 'STRKEY_HASH', class: Hash, keys: String
 
-      expect(EnvSetting.strkey_hash).to eq({'one' => 'two', 'three' => 'four'})
+      expect(described_class.strkey_hash).to eq({'one' => 'two', 'three' => 'four'})
     end
 
     it "Casts true" do
       ENV['TRUE'] = truthy_values.sample
-      EnvSetting.use 'TRUE', class: :boolean
+      described_class.use 'TRUE', class: :boolean
 
-      expect(EnvSetting.true).to eq true
+      expect(described_class.true).to eq true
+      expect(described_class.true?).to eq true
     end
 
     it "Casts false" do
       ENV['FALSE'] = falsey_values.sample
-      EnvSetting.use 'FALSE', class: :boolean
+      described_class.use 'FALSE', class: :boolean
 
-      expect(EnvSetting.false).to eq false
+      expect(described_class.false).to eq false
+      expect(described_class.false?).to eq false
     end
 
     it "converts falsey or empty string to false by default" do
       ENV['FALSE'] = falsey_values.sample
-      EnvSetting.use 'FALSE'
+      described_class.use 'FALSE'
 
-      expect(EnvSetting.false).to eq false
+      expect(described_class.false).to eq false
     end
 
     it "leaves falsey string as string if specified" do
       ENV['FALSE'] = falsey_values.sample
-      EnvSetting.use 'FALSE', class: String
+      described_class.use 'FALSE', class: String
 
-      expect(EnvSetting.false).to be_a String
+      expect(described_class.false).to be_a String
     end
 
     it "allows default class to be overridden" do
-      expect(EnvSetting.default_class).to eq :StringUnlessFalsey
-      orig = EnvSetting.default_class
+      expect(described_class.default_class).to eq :StringUnlessFalsey
+      orig = described_class.default_class
 
-      EnvSetting.config { default_class String }
+      described_class.config { default_class String }
       ENV['FALSE'] = falsey_values.sample
-      EnvSetting.use 'FALSE'
+      described_class.use 'FALSE'
 
-      expect(EnvSetting.false).to be_a String
+      expect(described_class.false).to be_a String
 
-      EnvSetting.default_class orig
+      described_class.default_class orig
     end
 
     it "allows default falsey regex to be overridden" do
-      expect(EnvSetting.default_falsey_regex).to eq(/^(|0|disabled?|false|no|off)$/i)
-      orig = EnvSetting.default_falsey_regex
+      expect(described_class.default_falsey_regex).to eq(/^(|0|disabled?|false|no|off)$/i)
+      orig = described_class.default_falsey_regex
 
-      EnvSetting.config { default_falsey_regex(/fubar/i) }
+      described_class.config { default_falsey_regex(/fubar/i) }
 
       ENV['FALSEY'] = 'fubar'
-      EnvSetting.use 'FALSEY'
+      described_class.use 'FALSEY'
 
-      expect(EnvSetting.falsey).to be_a FalseClass
+      expect(described_class.falsey).to be_a FalseClass
 
       # Reset the default for rest of tests.
-      EnvSetting.default_falsey_regex orig
+      described_class.default_falsey_regex orig
     end
 
     it "allows addition of custom types" do
       require 'set'
 
       ENV['NUMBER_SET'] = '1,3,5,7,9'
-      EnvSetting.config do
+      described_class.config do
         add_class Set do |value, options|
           Set.new self.Array(value, options || {})
         end
@@ -196,7 +198,7 @@ RSpec.describe EnvSetting do
         use :NUMBER_SET, class: Set, of: Integer
       end
 
-      expect(EnvSetting.number_set).to eq Set.new [1, 3, 5, 7, 9]
+      expect(described_class.number_set).to eq Set.new [1, 3, 5, 7, 9]
     end
   end
 
@@ -204,19 +206,19 @@ RSpec.describe EnvSetting do
     it "provides configured keys" do
       ENV['VAR1'] = 'something'
       ENV['VAR2'] = 'something else'
-      EnvSetting.use 'VAR1'
-      EnvSetting.use 'VAR2'
+      described_class.use 'VAR1'
+      described_class.use 'VAR2'
 
-      expect(EnvSetting.keys).to include(*%w[VAR1 VAR2])
+      expect(described_class.keys).to include(*%w[VAR1 VAR2])
     end
 
     it "provides configured values" do
       ENV['VAR1'] = 'something'
       ENV['VAR2'] = 'something else'
-      EnvSetting.use 'VAR1'
-      EnvSetting.use 'VAR2'
+      described_class.use 'VAR1'
+      described_class.use 'VAR2'
 
-      expect(EnvSetting.values).to include(*%w[something something\ else])
+      expect(described_class.values).to include(*%w[something something\ else])
     end
   end
 
@@ -225,7 +227,7 @@ RSpec.describe EnvSetting do
       ENV.delete('NOT_PRESENT')
 
       expect {
-        EnvSetting.config do
+        described_class.config do
           use 'NOT_PRESENT', 'You need a NOT_PRESENT var in your ENV'
         end
       }.to raise_error(KeyError, /You need a NOT_PRESENT var in your ENV/)
