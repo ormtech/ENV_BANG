@@ -48,8 +48,8 @@ class EnvSetting
       boolean(value, options) && value
     end
 
-    def respond_to?(method_sym)
-      Kernal.respond_to?(method_sym) || super
+    def self.respond_to?(method_sym)
+      Kernel.respond_to?(method_sym) || super
     end
 
     # Delegate methods like Integer(), Float(), String(), etc. to the Kernel module

@@ -197,6 +197,7 @@ RSpec.describe EnvSetting do
 
         use :NUMBER_SET, class: Set, of: Integer
       end
+      expect(described_class::Classes).to respond_to(:Set)
 
       expect(described_class.number_set).to eq Set.new [1, 3, 5, 7, 9]
     end
