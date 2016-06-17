@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
-gemspec name: 'env_bang'
+gemspec name: 'env_setting'
 
-group :metrics do
-  gem 'coveralls', require: false
-end
+# group :metrics do
+#   gem 'coveralls', require: false
+# end

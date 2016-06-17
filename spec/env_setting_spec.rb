@@ -1,42 +1,50 @@
-require_relative 'test_helper'
+require_relative 'spec_helper'
 
-describe ENV_BANG do
-  before do
-    ENV_BANG.instance_eval { @vars = nil }
-    ENV_BANG::Classes.default_class = nil
-  end
+RSpec.describe EnvSetting do
 
   it "Raises exception if unconfigured ENV var requested" do
     ENV['UNCONFIGURED'] = 'unconfigured'
-    proc { ENV!['UNCONFIGURED'] }.must_raise KeyError
+    expect { described_class.unconfigured }.to raise_error NoMethodError
+    expect { described_class['UNCONFIGURED'] }.to raise_error KeyError
   end
 
   it "Raises exception if configured ENV var is not present" do
     ENV.delete('NOT_PRESENT')
 
-    proc {
-      ENV!.config do
+    expect {
+      described_class.config do
         use 'NOT_PRESENT'
       end
-    }.must_raise KeyError
+    }.to raise_error KeyError
+  end
+
+  it "Should define two methods for each configured ENV var" do
+    ENV['CUSTOM_VAR'] = 'foo'
+
+    described_class.config do
+      use 'CUSTOM_VAR'
+    end
+
+    expect(described_class).to respond_to(:custom_var)
+    expect(described_class).to respond_to(:custom_var?)
   end
 
   it "Uses provided default value if ENV var not already present" do
     ENV.delete('WASNT_PRESENT')
 
-    ENV!.config do
+    described_class.config do
       use 'WASNT_PRESENT', default: 'a default value'
     end
-    ENV!['WASNT_PRESENT'].must_equal 'a default value'
+    expect(EnvSetting.wasnt_present).to eq 'a default value'
   end
 
   it "Returns actual value from ENV if present" do
     ENV['PRESENT'] = 'present in environment'
 
-    ENV!.config do
+    described_class.config do
       use 'PRESENT', default: "You won't need this."
     end
-    ENV!['PRESENT'].must_equal 'present in environment'
+    expect(EnvSetting.present).to eq 'present in environment'
   end
 
   describe "Type casting" do
@@ -48,120 +56,121 @@ describe ENV_BANG do
     it "Casts Integers" do
       integer = integers.sample
       ENV['INTEGER'] = integer
-      ENV!.use 'INTEGER', class: Integer
+      EnvSetting.use 'INTEGER', class: Integer
 
-      ENV!['INTEGER'].must_equal integer.to_i
+      expect(EnvSetting.integer).to eq integer.to_i
     end
 
     it "Casts Symbols" do
       ENV['SYMBOL'] = 'symbol'
-      ENV!.use 'SYMBOL', class: Symbol
+      EnvSetting.use 'SYMBOL', class: Symbol
 
-      ENV!['SYMBOL'].must_equal :symbol
+      expect(EnvSetting.symbol).to eq :symbol
     end
 
     it "Casts Floats" do
       float = floats.sample
       ENV['FLOAT'] = float
-      ENV!.use 'FLOAT', class: Float
+      EnvSetting.use 'FLOAT', class: Float
 
-      ENV!['FLOAT'].must_equal float.to_f
-      ENV!['FLOAT'].class.must_equal Float
+      expect(EnvSetting.float).to eq float.to_f
+      expect(EnvSetting.float).to be_a Float
     end
 
     it "Casts Arrays" do
       ENV['ARRAY'] = 'one,two , three, four'
-      ENV!.use 'ARRAY', class: Array
+      EnvSetting.use 'ARRAY', class: Array
 
-      ENV!['ARRAY'].must_equal %w[one two three four]
+      expect(EnvSetting.array).to match_array(%w[one two three four])
     end
 
     it "Casts Arrays of Integers" do
       ENV['INTEGERS'] = integers.join(',')
-      ENV!.use 'INTEGERS', class: Array, of: Integer
+      EnvSetting.use 'INTEGERS', class: Array, of: Integer
 
-      ENV!['INTEGERS'].must_equal integers.map(&:to_i)
+      expect(EnvSetting.integers).to match_array(integers.map(&:to_i))
     end
 
     it "Casts Arrays of Floats" do
       ENV['FLOATS'] = floats.join(',')
-      ENV!.use 'FLOATS', class: Array, of: Float
+      EnvSetting.use 'FLOATS', class: Array, of: Float
 
-      ENV!['FLOATS'].must_equal floats.map(&:to_f)
+      expect(EnvSetting.floats).to match_array(floats.map(&:to_f))
     end
 
     it "regression: Casting Array always returns Array" do
       ENV['ARRAY'] = 'one,two , three, four'
-      ENV!.use 'ARRAY', class: Array
+      EnvSetting.use 'ARRAY', class: Array
 
       2.times do
-        ENV!['ARRAY'].must_equal %w[one two three four]
+        expect(EnvSetting.array).to match_array(%w[one two three four])
       end
     end
 
     it "Casts Hashes" do
-      ENV['HASH'] = 'one: two, three: four'
-      ENV!.use 'HASH', class: Hash
+      ENV['HASH_VAR'] = 'one: two, three: four'
+      EnvSetting.use 'HASH_VAR', class: Hash
 
-      ENV!['HASH'].must_equal({one: 'two', three: 'four'})
+      expect(EnvSetting.hash_var).to eq({one: 'two', three: 'four'})
     end
 
     it 'Casts Hashes of Integers' do
       ENV['INT_HASH'] = 'one: 111, two: 222'
-      ENV!.use 'INT_HASH', class: Hash, of: Integer
+      EnvSetting.use 'INT_HASH', class: Hash, of: Integer
 
-      ENV!['INT_HASH'].must_equal({one: 111, two: 222})
+      expect(EnvSetting.int_hash).to eq({one: 111, two: 222})
     end
 
     it 'Casts Hashes with String keys' do
       ENV['STRKEY_HASH'] = 'one: two, three: four'
-      ENV!.use 'STRKEY_HASH', class: Hash, keys: String
+      EnvSetting.use 'STRKEY_HASH', class: Hash, keys: String
 
-      ENV!['STRKEY_HASH'].must_equal({'one' => 'two', 'three' => 'four'})
+      expect(EnvSetting.strkey_hash).to eq({'one' => 'two', 'three' => 'four'})
     end
 
     it "Casts true" do
       ENV['TRUE'] = truthy_values.sample
-      ENV!.use 'TRUE', class: :boolean
+      EnvSetting.use 'TRUE', class: :boolean
 
-      ENV!['TRUE'].must_equal true
+      expect(EnvSetting.true).to eq true
     end
 
     it "Casts false" do
       ENV['FALSE'] = falsey_values.sample
-      ENV!.use 'FALSE', class: :boolean
+      EnvSetting.use 'FALSE', class: :boolean
 
-      ENV!['FALSE'].must_equal false
+      expect(EnvSetting.false).to eq false
     end
 
     it "converts falsey or empty string to false by default" do
       ENV['FALSE'] = falsey_values.sample
-      ENV!.use 'FALSE'
+      EnvSetting.use 'FALSE'
 
-      ENV!['FALSE'].must_equal false
+      expect(EnvSetting.false).to eq false
     end
 
     it "leaves falsey string as string if specified" do
       ENV['FALSE'] = falsey_values.sample
-      ENV!.use 'FALSE', class: String
+      EnvSetting.use 'FALSE', class: String
 
-      ENV!['FALSE'].class.must_equal String
+      expect(EnvSetting.false).to be_a String
     end
 
     it "allows default class to be overridden" do
-      ENV!.default_class.must_equal :StringUnlessFalsey
-      ENV!.config { default_class String }
-      ENV['FALSE'] = falsey_values.sample
-      ENV!.use 'FALSE', class: String
+      expect(EnvSetting.default_class).to eq :StringUnlessFalsey
 
-      ENV!['FALSE'].class.must_equal String
+      EnvSetting.config { default_class String }
+      ENV['FALSE'] = falsey_values.sample
+      EnvSetting.use 'FALSE'
+
+      expect(EnvSetting.false).to be_a String
     end
 
     it "allows addition of custom types" do
       require 'set'
 
       ENV['NUMBER_SET'] = '1,3,5,7,9'
-      ENV!.config do
+      EnvSetting.config do
         add_class Set do |value, options|
           Set.new self.Array(value, options || {})
         end
@@ -169,7 +178,7 @@ describe ENV_BANG do
         use :NUMBER_SET, class: Set, of: Integer
       end
 
-      ENV!['NUMBER_SET'].must_equal Set.new [1, 3, 5, 7, 9]
+      expect(EnvSetting.number_set).to eq Set.new [1, 3, 5, 7, 9]
     end
   end
 
@@ -177,19 +186,19 @@ describe ENV_BANG do
     it "provides configured keys" do
       ENV['VAR1'] = 'something'
       ENV['VAR2'] = 'something else'
-      ENV!.use 'VAR1'
-      ENV!.use 'VAR2'
+      EnvSetting.use 'VAR1'
+      EnvSetting.use 'VAR2'
 
-      ENV!.keys.must_equal %w[VAR1 VAR2]
+      expect(EnvSetting.keys).to include(*%w[VAR1 VAR2])
     end
 
     it "provides configured values" do
       ENV['VAR1'] = 'something'
       ENV['VAR2'] = 'something else'
-      ENV!.use 'VAR1'
-      ENV!.use 'VAR2'
+      EnvSetting.use 'VAR1'
+      EnvSetting.use 'VAR2'
 
-      ENV!.values.must_equal %w[something something\ else]
+      expect(EnvSetting.values).to include(*%w[something something\ else])
     end
   end
 
@@ -197,33 +206,11 @@ describe ENV_BANG do
     it "Includes provided description in error message" do
       ENV.delete('NOT_PRESENT')
 
-      e = proc {
-        ENV!.config do
+      expect {
+        EnvSetting.config do
           use 'NOT_PRESENT', 'You need a NOT_PRESENT var in your ENV'
         end
-      }.must_raise(KeyError)
-      e.message.must_include 'You need a NOT_PRESENT var in your ENV'
-    end
-
-    it "Removes indentation from provided descriptions" do
-      ENV.delete('NOT_PRESENT')
-
-      e = proc {
-        ENV!.config do
-          use 'NOT_PRESENT', <<-DESC
-            This multiline description
-              has a lot of indentation
-                varying from line to line
-            like so
-          DESC
-        end
-      }.must_raise(KeyError)
-      e.message.must_include <<-UNINDENTED
-    This multiline description
-      has a lot of indentation
-        varying from line to line
-    like so
-      UNINDENTED
+      }.to raise_error(KeyError, /You need a NOT_PRESENT var in your ENV/)
     end
   end
 end
