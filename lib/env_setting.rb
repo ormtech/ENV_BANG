@@ -46,6 +46,14 @@ class EnvSetting
     end
   end
 
+  def self.default_falsey_regex(regex = nil)
+    if regex
+      Classes.default_falsey_regex = regex
+    else
+      Classes.default_falsey_regex
+    end
+  end
+
   def self.respond_to?(method_sym)
     instance.respond_to?(method_sym) || super
   end

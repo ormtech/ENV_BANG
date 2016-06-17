@@ -8,12 +8,20 @@ class EnvSetting
       @@default_class ||= :StringUnlessFalsey
     end
 
+    def self.default_falsey_regex
+      @@default_falsey_regex ||= /^(|0|disabled?|false|no|off)$/i
+    end
+
+    def self.default_falsey_regex=(regex)
+      @@default_falsey_regex = regex
+    end
+
     def self.cast(value, options = {})
       public_send(:"#{options.fetch(:class, default_class)}", value, options)
     end
 
     def self.boolean(value, options)
-      !(value =~ /^(|0|disabled?|false|no|off)$/i)
+      !(value =~ default_falsey_regex)
     end
 
     def self.Array(value, options)

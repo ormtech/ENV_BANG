@@ -158,12 +158,30 @@ RSpec.describe EnvSetting do
 
     it "allows default class to be overridden" do
       expect(EnvSetting.default_class).to eq :StringUnlessFalsey
+      orig = EnvSetting.default_class
 
       EnvSetting.config { default_class String }
       ENV['FALSE'] = falsey_values.sample
       EnvSetting.use 'FALSE'
 
       expect(EnvSetting.false).to be_a String
+
+      EnvSetting.default_class orig
+    end
+
+    it "allows default falsey regex to be overridden" do
+      expect(EnvSetting.default_falsey_regex).to eq(/^(|0|disabled?|false|no|off)$/i)
+      orig = EnvSetting.default_falsey_regex
+
+      EnvSetting.config { default_falsey_regex(/fubar/i) }
+
+      ENV['FALSEY'] = 'fubar'
+      EnvSetting.use 'FALSEY'
+
+      expect(EnvSetting.falsey).to be_a FalseClass
+
+      # Reset the default for rest of tests.
+      EnvSetting.default_falsey_regex orig
     end
 
     it "allows addition of custom types" do
