@@ -18,8 +18,6 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test)/})
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "dotenv"
-
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec", "~> 3.4"
   spec.add_development_dependency "simplecov"
