@@ -10,6 +10,7 @@ class EnvSetting
   def self.use(var, *args)
     var = var.to_s
     description = args.first.is_a?(String) && args.shift
+    description ||= ""
     options = args.last.is_a?(Hash) ? args.pop : {}
 
     unless ENV.has_key?(var)
