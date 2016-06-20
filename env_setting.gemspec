@@ -13,6 +13,9 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/ormtech/env_setting"
   spec.license       = "MIT"
 
+  spec.cert_chain  = ['certs/wspurgin.pem']
+  spec.signing_key = File.expand_path("~/.ssh/gem-private_key.pem") if $0 =~ /gem\z/
+
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test)/})
