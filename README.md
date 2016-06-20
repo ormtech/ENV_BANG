@@ -243,8 +243,8 @@ Settings.my_special_env_var
 
 ## Implementation Notes
 
-1. Any method that can be run within an `EnvSetting.config` block can also be run
-   as a method directly on `EnvSetting`. For instance, instead of
+1. Any method that can be run within an `EnvSetting.config` block can also be
+   run as a method directly on `EnvSetting`. For instance, instead of
 
    ```ruby
    EnvSetting.config do
@@ -269,6 +269,49 @@ Settings.my_special_env_var
    While the `config` block is designed to provide a cleaner configuration
    file, calling the methods directly can occasionally be handy, such as when
    trying things out in an IRB/Pry session.
+
+2. `EnvSetting` is a wrapper for global state, and while it appears that
+   everything is stored/modified on the class level, it is actually defining and
+   delegating everything to a Singleton. Effectively that means that all the
+   ENV variable access methods are actually defined on an instance Singleton and
+   **not** on the `EnvSetting` class itself. For example:
+
+   ```ruby
+   EnvSetting.use "BUNDLE_BIN_PATH"
+
+   # The class appears to respond to respond to our envrionment variable method
+   EnvSetting.bundle_bin_path
+   # => "/srv/app/shared/.rbenv/versions/2.2.4/lib/ruby/gems/2.2.0/gems/bundler-1.11.2/exe/bundle"
+   EnvSetting.:bundle_bin_path?
+   # => true
+
+   # However the Singelton is the true responder
+   EnvSetting.instance.bundle_bin_path
+   # => "/srv/app/shared/.rbenv/versions/2.2.4/lib/ruby/gems/2.2.0/gems/bundler-1.11.2/exe/bundle"
+   EnvSetting.instance.bundle_bin_path?
+   # => true
+
+   # Swapping in a different Singelton instance shows the truth.
+   EnvSetting.set_instance(EnvSetting.new)
+   EnvSetting.respond_to?(:bundle_bin_path)
+   # => false
+   EnvSetting.respond_to?(:bundle_bin_path?)
+   # => false
+
+   EnvSetting.instance.respond_to?(:bundle_bin_path)
+   # => false
+   EnvSetting.instance.respond_to?(:bundle_bin_path?)
+   # => false
+   ```
+
+3. `EnvSetting` stores the converted ENV variable values in a cache (just to
+   avoid having to repeat a laborious conversion). In the event that you want
+   all the cache to be cleared out and all the conversions applied again, use
+   the `clear_cache!` method on the **instance Singelton**:
+
+   ```ruby
+   EnvSetting.instance.clear_cache!
+   ```
 
 ## Acknowledgements
 
