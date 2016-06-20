@@ -267,4 +267,34 @@ RSpec.describe EnvSetting do
       expect(described_class.instance.cache).to be_empty
     end
   end
+
+  describe "#set_instance" do
+    let(:setting_class) { Class.new(described_class) }
+    it "should set the instance Singleton to the given object" do
+      obj = setting_class.new
+      described_class.set_instance(obj)
+      expect(described_class.instance).to be obj
+
+      obj = described_class.new
+      described_class.set_instance(obj)
+      expect(described_class.instance).to be obj
+    end
+
+    it "should raise an argument error if the given class is not a derivative of #{described_class}" do
+      expect { described_class.set_instance(Object.new) }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe "#instance" do
+    it "should have the ENV variable methods defined on the Singelton, not the class" do
+      # Reset Singleton for fresh test
+      described_class.set_instance(described_class.new)
+      ENV["MY_SPECIAL_VAR"] = "foo"
+
+      described_class.use :MY_SPECIAL_VAR
+      expect(described_class.method_defined? :my_special_var).to eq false
+      expect(described_class.instance).to respond_to(:my_special_var)
+      expect(described_class.instance.public_methods).to include :my_special_var, :my_special_var?
+    end
+  end
 end

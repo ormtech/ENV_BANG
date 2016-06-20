@@ -66,6 +66,11 @@ class EnvSetting
     @@instance ||= new
   end
 
+  def self.set_instance(obj)
+    raise ArgumentError.new "Object must be a derivative of EnvSetting" unless obj.is_a?(EnvSetting)
+    @@instance = obj
+  end
+
   def self.vars
     @@vars ||= {}
   end
